@@ -1,0 +1,34 @@
+name: Update Napoli Serie A Fixtures
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # 매일 자정 UTC 기준
+  workflow_dispatch:
+
+jobs:
+  fetch_napoli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch Napoli Serie A fixtures
+        id: fixtures
+        uses: actions/http-client@v3
+        with:
+          url: >-
+            https://v3.football.api‑sports.io/fixtures?team=167&league=135&season=2024
+          headers: '{"x-apisports-key":"${{ secrets.API_FOOTBALL_KEY }}"}'
+          method: GET
+      - name: Save raw JSON
+        run: echo "${{ steps.fixtures.responseBody }}" > napoli-fixtures.json
+      - name: Parse upcoming matches
+        run: |
+          jq -r '.response[] | select(.league.id==135) |
+                "\\(.fixture.date) — \(.teams.home.name) vs \(.teams.away.name) (status: \(.fixture.status.short))"' \
+                napoli-fixtures.json > napoli-fixtures.md
+      - name: Commit and push
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: 'github-actions'
+          author_email: 'actions@github.com'
+          message: 'Update Napoli fixtures'
+          push: true
