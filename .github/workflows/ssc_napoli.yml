@@ -13,13 +13,10 @@ jobs:
 
       - name: Fetch fixtures via action
         id: fixtures
-        uses: fjogeleit/http-request-action@v1
-        with:
-            url: "https://v3.football.api-sports.io/fixtures?team=167&league=135&season=2025&status=all"
-            method: GET
-            customHeaders: |
-                x-apisports-key: ${{ secrets.API_FOOTBALL_KEY }}
-
+        run: |
+            curl -s -H "x-apisports-key: ${{ secrets.API_FOOTBALL_KEY }}" \
+            "https://v3.football.api-sports.io/fixtures?team=167&league=135&season=2025&status=all" \
+             napoli-fixtures.json
       - name: Save raw response
         run: echo "${{ steps.fixtures.responseBody }}" > napoli-fixtures.json
 
