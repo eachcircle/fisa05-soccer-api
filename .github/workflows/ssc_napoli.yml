@@ -18,7 +18,7 @@ jobs:
         run: |
           echo "Fetching fixtures..."
           curl -s -H "x-apisports-key: ${{ secrets.API_FOOTBALL_KEY }}" \
-            "https://v3.football.api-sports.io/fixtures?team=167&league=135&season=2025&status=all" \
+            "https://v3.football.api-sports.io/fixtures?team=167&league=135&season=2024&status=all" \
             -o napoli-fixtures.json
           echo "Downloaded $(wc -c < napoli-fixtures.json) bytes"
 
