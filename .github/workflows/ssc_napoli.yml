@@ -2,7 +2,7 @@ name: Update Napoli Serie A Fixtures
 
 on:
   schedule:
-    - cron: '0 0 * * *'   # 매일 자정 UTC 기준
+    - cron: '0 0 * * *'  # 매일 자정 UTC
   workflow_dispatch:
 
 jobs:
@@ -10,22 +10,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Fetch Napoli Serie A fixtures
+
+      - name: Fetch fixtures via action
         id: fixtures
-        uses: actions/http-client@v3
+        uses: fjogeleit/http-request-action@v1
         with:
-          url: >-
-            https://v3.football.api‑sports.io/fixtures?team=167&league=135&season=2024
-          headers: '{"x-apisports-key":"${{ secrets.API_FOOTBALL_KEY }}"}'
-          method: GET
-      - name: Save raw JSON
+            url: "https://v3.football.api-sports.io/fixtures?team=167&league=135&season=2025&status=all"
+            method: GET
+            customHeaders: |
+                x-apisports-key: ${{ secrets.API_FOOTBALL_KEY }}
+
+      - name: Save raw response
         run: echo "${{ steps.fixtures.responseBody }}" > napoli-fixtures.json
-      - name: Parse upcoming matches
+
+      - name: Parse upcoming/finished matches
         run: |
-          jq -r '.response[] | select(.league.id==135) |
-                "\\(.fixture.date) — \(.teams.home.name) vs \(.teams.away.name) (status: \(.fixture.status.short))"' \
-                napoli-fixtures.json > napoli-fixtures.md
-      - name: Commit and push
+          jq -r '.response[] |
+            select(.league.id==135) |
+            "\\(.fixture.date) — \(.teams.home.name) vs \(.teams.away.name) — status: \(.fixture.status.short)"' \
+            napoli-fixtures.json > napoli-fixtures.md
+
+      - name: Commit report
         uses: EndBug/add-and-commit@v9
         with:
           author_name: 'github-actions'
